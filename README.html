@@ -1,0 +1,801 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stress Relief Bot - LPU</title>
+    <style>
+        :root {
+            --primary-color: #5d9cec;
+            --secondary-color: #a0d468;
+            --user-color: #e6f2ff;
+            --bot-color: #f5f7fa;
+            --text-color: #333;
+            --error-color: #ed5565;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            color: var(--text-color);
+            line-height: 1.6;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Login Page Styles */
+        .login-container {
+            width: 100%;
+            max-width: 400px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .login-container h1 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .login-form input {
+            width: 100%;
+            padding: 12px 15px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .login-form button {
+            width: 100%;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        .login-form button:hover {
+            opacity: 0.9;
+        }
+
+        .error-message {
+            color: var(--error-color);
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+
+        /* Chat Container Styles (hidden by default) */
+        .chat-container {
+            display: none;
+            width: 100%;
+            max-width: 800px;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            flex-direction: column;
+            height: 80vh;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .logout-btn {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        .history-btn {
+            position: absolute;
+            left: 20px;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 15px;
+            cursor: pointer;
+        }
+
+        #chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            gap: 12px;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .user-message {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+
+        .bot-message {
+            align-self: flex-start;
+        }
+
+        .profile-image {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        .user-message .message-content {
+            background-color: var(--user-color);
+            color: #2c3e50;
+            border-bottom-right-radius: 5px;
+        }
+
+        .bot-message .message-content {
+            background-color: var(--bot-color);
+            color: #2c3e50;
+            border-bottom-left-radius: 5px;
+        }
+
+        .input-area {
+            display: flex;
+            padding: 15px;
+            background-color: white;
+            border-top: 1px solid #eee;
+        }
+
+        #user-input {
+            flex: 1;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            outline: none;
+            font-size: 15px;
+            resize: none;
+            min-height: 50px;
+            max-height: 100px;
+            transition: border-color 0.3s;
+        }
+
+        #user-input:focus {
+            border-color: var(--primary-color);
+        }
+
+        #send-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            padding: 0 20px;
+            margin-left: 10px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: opacity 0.3s;
+        }
+
+        #send-button:hover {
+            opacity: 0.9;
+        }
+
+        #send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 5px;
+            padding: 10px 15px;
+            background-color: var(--bot-color);
+            border-radius: 18px;
+            align-self: flex-start;
+            margin-bottom: 15px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #7f8c8d;
+            border-radius: 50%;
+            animation: typingAnimation 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: 0s; }
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typingAnimation {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-5px); }
+        }
+
+        /* History Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            border-radius: 15px;
+            width: 80%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .modal-header h2 {
+            color: var(--primary-color);
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+        }
+
+        .history-item:hover {
+            background-color: #f5f7fa;
+        }
+
+        .history-date {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .history-preview {
+            color: #666;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* LPU Image and Numbers */
+        .lpu-image {
+            width: 150px;
+            height: auto;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .numbers-display {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 18px;
+            color: #333;
+        }
+
+        .number-item {
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .chat-container {
+                height: 90vh;
+                border-radius: 0;
+            }
+            
+            .message {
+                max-width: 90%;
+            }
+            
+            .lpu-image {
+                width: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Page -->
+    <div class="login-container" id="login-container">
+        <img src="https://www.lpu.in/images/logo/logo.svg" alt="LPU Logo" class="lpu-image">
+        <h1>Welcome to Stress Relief Bot</h1>
+        <div class="numbers-display">
+            <div class="number-item">12307384</div>
+            <div class="number-item">12308708</div>
+            <div class="number-item">12322849</div>
+        </div>
+        <form class="login-form" id="login-form">
+            <div class="error-message" id="login-error"></div>
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#" id="show-register">Register</a></p>
+    </div>
+
+    <!-- Registration Page (hidden by default) -->
+    <div class="login-container" id="register-container" style="display: none;">
+        <img src="https://www.lpu.in/images/logo/logo.svg" alt="LPU Logo" class="lpu-image">
+        <h1>Create Account</h1>
+        <div class="numbers-display">
+            <div class="number-item">12307384</div>
+            <div class="number-item">12308708</div>
+            <div class="number-item">12322849</div>
+        </div>
+        <form class="login-form" id="register-form">
+            <div class="error-message" id="register-error"></div>
+            <input type="text" id="new-username" placeholder="Choose a username" required>
+            <input type="password" id="new-password" placeholder="Choose a password" required>
+            <input type="password" id="confirm-password" placeholder="Confirm password" required>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+    </div>
+
+    <!-- Chat Container (hidden until login) -->
+    <div class="chat-container" id="chat-container">
+        <div class="chat-header">
+            <button class="history-btn" id="history-btn">History</button>
+            <h1>Stress Relief Bot</h1>
+            <p>Your personal assistant for relaxation and mindfulness</p>
+            <button class="logout-btn" id="logout-btn">Logout</button>
+        </div>
+        
+        <div id="chat-messages"></div>
+        
+        <div class="input-area">
+            <textarea id="user-input" placeholder="How are you feeling today? (Press Enter to send)" rows="1"></textarea>
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+
+    <!-- History Modal -->
+    <div class="modal" id="history-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Conversation History</h2>
+                <button class="close-modal" id="close-modal">&times;</button>
+            </div>
+            <div id="history-list">
+                <!-- History items will be added here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // User accounts (in a real app, this would be server-side)
+        const users = JSON.parse(localStorage.getItem('stressReliefBotUsers')) || {
+            // Predefined login credentials
+            "12307384": { password: "12307384" },
+            "12308708": { password: "12308708" },
+            "12322849": { password: "12322849" }
+        };
+        
+        // Current user session
+        let currentUser = null;
+        let conversations = JSON.parse(localStorage.getItem('stressReliefBotConversations')) || {};
+
+        // DOM Elements
+        const loginContainer = document.getElementById('login-container');
+        const registerContainer = document.getElementById('register-container');
+        const chatContainer = document.getElementById('chat-container');
+        const loginForm = document.getElementById('login-form');
+        const registerForm = document.getElementById('register-form');
+        const loginError = document.getElementById('login-error');
+        const registerError = document.getElementById('register-error');
+        const showRegister = document.getElementById('show-register');
+        const showLogin = document.getElementById('show-login');
+        const logoutBtn = document.getElementById('logout-btn');
+        const historyBtn = document.getElementById('history-btn');
+        const historyModal = document.getElementById('history-modal');
+        const closeModal = document.getElementById('close-modal');
+        const historyList = document.getElementById('history-list');
+        
+        // Chat elements
+        const chatMessages = document.getElementById('chat-messages');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        // API Configuration
+        const API_KEY = 'AIzaSyCU17yMMSFbgUmks1RdXXqEtkDsPirp524'; // Replace with your actual API key
+        const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+
+        // Event Listeners
+        showRegister.addEventListener('click', (e) => {
+            e.preventDefault();
+            loginContainer.style.display = 'none';
+            registerContainer.style.display = 'block';
+        });
+
+        showLogin.addEventListener('click', (e) => {
+            e.preventDefault();
+            registerContainer.style.display = 'none';
+            loginContainer.style.display = 'block';
+        });
+
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            if (users[username] && users[username].password === password) {
+                // Successful login
+                currentUser = username;
+                loginContainer.style.display = 'none';
+                registerContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                loadConversation();
+            } else {
+                loginError.textContent = 'Invalid username or password';
+            }
+        });
+
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('new-username').value;
+            const password = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                registerError.textContent = 'Passwords do not match';
+                return;
+            }
+            
+            if (users[username]) {
+                registerError.textContent = 'Username already exists';
+                return;
+            }
+            
+            // Create new user
+            users[username] = { password };
+            localStorage.setItem('stressReliefBotUsers', JSON.stringify(users));
+            
+            // Create empty conversations array for new user
+            if (!conversations[username]) {
+                conversations[username] = [];
+                localStorage.setItem('stressReliefBotConversations', JSON.stringify(conversations));
+            }
+            
+            // Show success message and switch to login
+            registerError.textContent = 'Registration successful! Please login.';
+            registerError.style.color = 'green';
+            setTimeout(() => {
+                registerContainer.style.display = 'none';
+                loginContainer.style.display = 'block';
+                document.getElementById('username').value = username;
+                document.getElementById('password').value = '';
+                registerError.textContent = '';
+                registerError.style.color = 'var(--error-color)';
+            }, 1500);
+        });
+
+        logoutBtn.addEventListener('click', () => {
+            // Save current conversation before logging out
+            saveConversation();
+            
+            // Reset and show login page
+            currentUser = null;
+            chatContainer.style.display = 'none';
+            loginContainer.style.display = 'block';
+            chatMessages.innerHTML = '';
+        });
+
+        historyBtn.addEventListener('click', () => {
+            showHistory();
+        });
+
+        closeModal.addEventListener('click', () => {
+            historyModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === historyModal) {
+                historyModal.style.display = 'none';
+            }
+        });
+
+        // Chat functionality
+        sendButton.addEventListener('click', handleUserInput);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleUserInput();
+            }
+        });
+
+        // Auto-resize textarea
+        userInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+
+        // Load conversation when page loads if user is logged in
+        window.addEventListener('DOMContentLoaded', () => {
+            // Check if user is already logged in (from previous session)
+            const loggedInUser = localStorage.getItem('stressReliefBotCurrentUser');
+            if (loggedInUser && users[loggedInUser]) {
+                currentUser = loggedInUser;
+                loginContainer.style.display = 'none';
+                registerContainer.style.display = 'none';
+                chatContainer.style.display = 'flex';
+                loadConversation();
+            }
+        });
+
+        // Save current user when leaving page
+        window.addEventListener('beforeunload', () => {
+            if (currentUser) {
+                saveConversation();
+                localStorage.setItem('stressReliefBotCurrentUser', currentUser);
+            }
+        });
+
+        // Functions
+        function showHistory() {
+            historyList.innerHTML = '';
+            
+            if (currentUser && conversations[currentUser]) {
+                conversations[currentUser].forEach((convo, index) => {
+                    const historyItem = document.createElement('div');
+                    historyItem.className = 'history-item';
+                    historyItem.innerHTML = `
+                        <div class="history-date">${new Date(convo.timestamp).toLocaleString()}</div>
+                        <div class="history-preview">${convo.messages[0].content.substring(0, 50)}...</div>
+                    `;
+                    
+                    historyItem.addEventListener('click', () => {
+                        loadConversation(index);
+                        historyModal.style.display = 'none';
+                    });
+                    
+                    historyList.appendChild(historyItem);
+                });
+            }
+            
+            historyModal.style.display = 'flex';
+        }
+
+        function saveConversation() {
+            if (!currentUser) return;
+            
+            // Get all messages from the chat
+            const messageElements = chatMessages.querySelectorAll('.message');
+            const messages = [];
+            
+            messageElements.forEach(el => {
+                const isUser = el.classList.contains('user-message');
+                const content = el.querySelector('.message-content').textContent;
+                messages.push({
+                    role: isUser ? 'user' : 'assistant',
+                    content: content
+                });
+            });
+            
+            // Check if we're continuing an existing conversation
+            let existingIndex = -1;
+            if (conversations[currentUser]) {
+                existingIndex = conversations[currentUser].findIndex(convo => 
+                    convo.messages.length === messages.length && 
+                    convo.messages.every((msg, i) => 
+                        msg.role === messages[i].role && 
+                        msg.content === messages[i].content
+                    )
+                );
+            } else {
+                conversations[currentUser] = [];
+            }
+            
+            // If it's a new conversation or modified existing one
+            if (existingIndex === -1 && messages.length > 0) {
+                conversations[currentUser].push({
+                    timestamp: new Date().toISOString(),
+                    messages: messages
+                });
+                
+                // Keep only the last 20 conversations
+                if (conversations[currentUser].length > 20) {
+                    conversations[currentUser].shift();
+                }
+                
+                localStorage.setItem('stressReliefBotConversations', JSON.stringify(conversations));
+            }
+        }
+
+        function loadConversation(index = -1) {
+            chatMessages.innerHTML = '';
+            
+            if (!currentUser || !conversations[currentUser] || conversations[currentUser].length === 0) {
+                // New user or no history - show welcome message
+                addMessage("Hello! I'm your Stress Relief Bot. I'm here to help you relax, practice mindfulness, and manage stress. How are you feeling today?", false);
+                return;
+            }
+            
+            // Load specific conversation or the most recent one
+            const convoIndex = index >= 0 ? index : conversations[currentUser].length - 1;
+            const conversation = conversations[currentUser][convoIndex];
+            
+            conversation.messages.forEach(msg => {
+                addMessage(msg.content, msg.role === 'user');
+            });
+            
+            // Scroll to bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Chat functions (from your original code)
+        async function generateResponse(prompt) {
+            showTypingIndicator();
+            
+            try {
+                const response = await fetch(`${API_URL}?key=${API_KEY}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [{
+                                text: "You are a compassionate stress relief assistant. Provide calming, supportive responses. Keep messages brief but empathetic. Offer breathing exercises, positive affirmations, or mindfulness tips when appropriate. User says: " + prompt
+                            }]
+                        }]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to generate response');
+                }
+
+                const data = await response.json();
+                return data.candidates[0].content.parts[0].text;
+            } finally {
+                hideTypingIndicator();
+            }
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'typing-indicator';
+            typingDiv.id = 'typing-indicator';
+            typingDiv.innerHTML = `
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            `;
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function hideTypingIndicator() {
+            const typingIndicator = document.getElementById('typing-indicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        function cleanMarkdown(text) {
+            return text
+                .replace(/#{1,6}\s?/g, '')
+                .replace(/\*\*/g, '')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim();
+        }
+
+        function addMessage(message, isUser) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.classList.add(isUser ? 'user-message' : 'bot-message');
+
+            const profileImage = document.createElement('img');
+            profileImage.classList.add('profile-image');
+            profileImage.src = isUser ? 'https://i.imgur.com/JfZ2JzL.png' : 'https://i.imgur.com/6Q5ZQ9X.png';
+            profileImage.alt = isUser ? 'User' : 'Bot';
+
+            const messageContent = document.createElement('div');
+            messageContent.classList.add('message-content');
+            messageContent.textContent = message;
+
+            messageElement.appendChild(profileImage);
+            messageElement.appendChild(messageContent);
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        async function handleUserInput() {
+            const userMessage = userInput.value.trim();
+            
+            if (userMessage) {
+                addMessage(userMessage, true);
+                userInput.value = '';
+                sendButton.disabled = true;
+                userInput.disabled = true;
+
+                try {
+                    const botMessage = await generateResponse(userMessage);
+                    addMessage(cleanMarkdown(botMessage), false);
+                    
+                    // Auto-save after each interaction
+                    saveConversation();
+                } catch (error) {
+                    console.error('Error:', error);
+                    addMessage('Sorry, I encountered an error. Please try again.', false);
+                } finally {
+                    sendButton.disabled = false;
+                    userInput.disabled = false;
+                    userInput.focus();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
